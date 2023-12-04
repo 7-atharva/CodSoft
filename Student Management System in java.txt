@@ -1,0 +1,202 @@
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+public class StudentManagementSystem {
+    private List<Student> studentList = new ArrayList<>();
+    private JFrame frame;
+    private JTextField nameField;
+    private JTextField idField;
+    private JTextField gradeField;
+    private DefaultListModel<String> listModel;
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            new StudentManagementSystem().initialize();
+        });
+    }
+    private void initialize() {
+        frame = new JFrame("Student Management System");
+        frame.setBounds(100, 200, 400, 350);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().setLayout(null);
+
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setBounds(20, 20, 80, 20);
+        frame.getContentPane().add(nameLabel);
+
+        nameField = new JTextField();
+        nameField.setBounds(120, 20, 200, 20);
+        frame.getContentPane().add(nameField);
+
+        JLabel idLabel = new JLabel("Roll No:");
+        idLabel.setBounds(20, 50, 80, 20);
+        frame.getContentPane().add(idLabel);
+
+        idField = new JTextField();
+        idField.setBounds(120, 50, 200, 20);
+        frame.getContentPane().add(idField);
+
+        JLabel gradeLabel = new JLabel("Grade:");
+        gradeLabel.setBounds(20, 80, 80, 20);
+        frame.getContentPane().add(gradeLabel);
+
+        gradeField = new JTextField();
+        gradeField.setBounds(120, 80, 200, 20);
+        frame.getContentPane().add(gradeField);
+
+        JButton addButton = new JButton("Add Student");
+        addButton.setBounds(20, 110, 150, 25);
+        addButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addStudent();
+            }
+        });
+        frame.getContentPane().add(addButton);
+
+        JButton removeButton = new JButton("Remove Student");
+        removeButton.setBounds(180, 110, 150, 25);
+        removeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeStudent();
+            }
+        });
+        frame.getContentPane().add(removeButton);
+
+        JButton searchButton = new JButton("Search Student");
+        searchButton.setBounds(20, 140, 150, 25);
+        searchButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                searchStudent();
+            }
+        });
+        frame.getContentPane().add(searchButton);
+
+        JButton displayListButton = new JButton("Display Student List");
+        displayListButton.setBounds(180, 140, 150, 25);
+        displayListButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                displayStudentList();
+            }
+        });
+        frame.getContentPane().add(displayListButton);
+        JButton exitButton = new JButton("Exit");
+        exitButton.setBounds(100, 170, 150, 25);
+        exitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                exitApplication();
+            }
+        });
+        frame.getContentPane().add(exitButton);
+        listModel = new DefaultListModel<>();
+        JList<String> studentListUI = new JList<>(listModel);
+        JScrollPane scrollPane = new JScrollPane(studentListUI);
+        scrollPane.setBounds(20, 200, 350, 80);
+        frame.getContentPane().add(scrollPane);
+
+        frame.setVisible(true);
+    }
+    private void addStudent() {
+        String name = nameField.getText();
+        String id = idField.getText();
+        String grade = gradeField.getText();
+
+        if (!name.isEmpty() && !id.isEmpty() && !grade.isEmpty()) {
+            Student student = new Student(name, id, grade);
+            studentList.add(student);
+            updateStudentListUI();
+            clearFields();
+        } else {
+            JOptionPane.showMessageDialog(frame, "Please enter name, ID, and grade.");
+        }
+    }
+    private void removeStudent() {
+        int selectedIndex = listModel.indexOf(listModel.getElementAt(listModel.getSize() - 1));
+        if (selectedIndex != -1) {
+            studentList.remove(selectedIndex);
+            updateStudentListUI();
+        } else {
+            JOptionPane.showMessageDialog(frame, "No student selected for removal.");
+        }
+    }
+    private void searchStudent() {
+        String searchId = idField.getText();
+        if (!searchId.isEmpty()) {
+            for (Student student : studentList) {
+                if (searchId.equals(student.getId())) {
+                    showStudentInfo(student);
+                    return;
+                }
+            }
+            JOptionPane.showMessageDialog(frame, "Student with ID " + searchId + " not found.");
+        } else {
+            JOptionPane.showMessageDialog(frame, "Please enter the ID to search.");
+        }
+    }
+    private void showStudentInfo(Student student) {
+        JOptionPane.showMessageDialog(frame, "Student Information\n\n" +
+                "Name: " + student.getName() + "\n" +
+                "ID: " + student.getId() + "\n" +
+                "Grade: " + student.getGrade());
+    }
+    private void displayStudentList() {
+        StringBuilder listText = new StringBuilder("Student List\n\n");
+        for (Student student : studentList) {
+            listText.append("Name: ").append(student.getName()).append("\n");
+            listText.append("ID: ").append(student.getId()).append("\n");
+            listText.append("Grade: ").append(student.getGrade()).append("\n\n");
+        }
+        JTextArea textArea = new JTextArea(listText.toString());
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        JFrame displayFrame = new JFrame("Student List");
+        displayFrame.setSize(400, 300);
+        displayFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        displayFrame.getContentPane().add(scrollPane);
+        displayFrame.setVisible(true);
+    }
+    private void exitApplication() {
+        int confirm = JOptionPane.showOptionDialog(frame,
+                "Are you sure you want to exit the application?",
+                "Exit Confirmation", JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null, null, null);
+        if (confirm == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }
+    private void updateStudentListUI() {
+        listModel.clear();
+        for (Student student : studentList) {
+            listModel.addElement(student.getName() + " - " + student.getId() + " - Grade: " + student.getGrade());
+        }
+    }
+    private void clearFields() {
+        nameField.setText("");
+        idField.setText("");
+        gradeField.setText("");
+    }
+    private static class Student {
+        private String name;
+        private String id;
+        private String grade;
+        public Student(String name, String id, String grade) {
+            this.name = name;
+            this.id = id;
+            this.grade = grade;
+        }
+        public String getName() {
+            return name;
+        }
+        public String getId() {
+            return id;
+        }
+        public String getGrade() {
+            return grade;
+        }
+    }
+}
